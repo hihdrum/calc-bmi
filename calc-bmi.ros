@@ -12,9 +12,31 @@ exec ros -Q -- $0 "$@"
   (:use :cl :calc-bmi))
 (in-package :ros.script.calc-bm.3845550042)
 
-(defun main (height weight &rest argv)
-  (declare (ignorable argv))
-  (format t "BMI: ~A~%"
-          (calc-bmi:calc-bmi (parse-integer height)
-                             (parse-integer weight))))
+(defconstant +print-help+
+  "Calculate BMI from height and weight
+
+Usage: ros ./calc-bmi.ros --height [height] --weight [weight]
+
+Options:
+  -v, --version  print version
+  -h, --help     print help
+")
+
+(defun main (&optional command &rest argv)
+  (cond
+    ((string= command "--height")
+     (let ((height (parse-integer (format nil "~A" (first argv))))
+           (weight (when (and (= (length argv) 3)
+                              (string= (second argv) "--weight"))
+                     (parse-integer (format nil "~A" (third argv))))))
+       (if weight
+           (format t "BMI: ~A~%" (calc-bmi height weight))
+           (format t "Please enter weight~%"))))
+    ((or (string= command "--version")
+         (string= command "-v"))
+     (format t "Version: 0.0.1~%"))
+    ((or (string= command "--help")
+         (string= command "-h"))
+     (format t +print-help+))
+    (t (format t +print-help+))))
 ;;; vim: set ft=lisp lisp:
